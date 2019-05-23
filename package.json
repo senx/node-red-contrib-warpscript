@@ -1,6 +1,6 @@
 {
   "name": "@senx/node-red-contrib-warpscript",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Node-RED node for executing WarpScript™",
   "main": "warpscript.js",
   "repository": "git@github.com:senx/node-red-contrib-warpscript.git",
@@ -16,7 +16,7 @@
     "Times Series"
   ],
   "private": false,
-  "node-red" : {
+  "node-red": {
     "nodes": {
       "WarpScript": "warpscript.js"
     }
