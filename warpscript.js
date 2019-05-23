@@ -13,6 +13,9 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 //
+const urllib = require('url');
+const https = require('https');
+const http = require('http');
 
 module.exports = function (RED) {
 
@@ -26,9 +29,6 @@ module.exports = function (RED) {
     const node = this;
     this.warpurl = config.warpurl;
     this.warpscript = config.warpscript;
-    const urllib = require('url');
-    const https = require('https');
-    const http = require('http');
 
     this.on('input', function (msg) {
       //
@@ -60,46 +60,59 @@ module.exports = function (RED) {
 
       // Set up the response handling
 
+      let data = '';
       const post_req = ((/^https/.test(this.warpurl)) ? https : http).request(post_options, res => {
         res.setEncoding('utf8');
         res.on('data', chunk => {
-          //
-          // parse the JSON returned by Warp 10™ and reverse it so the most recent element is last
-          //
-          const json = JSON.parse(chunk).reverse();
+          data += chunk;
+        });
+        res.on('end', () => {
+          if(res.statusCode < 400) {
+            node.status({fill: "green", shape: "dot", text: 'Engage'});
+            //
+            // parse the JSON returned by Warp 10™ and reverse it so the most recent element is last
+            //
+            const json = JSON.parse(data).reverse();
+            const output = [];
 
-          const output = [];
+            json.forEach(message => {
+              if (Array.isArray(message)) {
+                output.push(message);
+              } else if (typeof message == 'object') {
+                output.push(message);
+              } else {
+                //
+                // Wrap the element in an object
+                //
+                msg = {};
+                msg.payload = message;
+                output.push(msg);
+              }
+            });
 
-          json.forEach(message => {
-            if (Array.isArray(message)) {
-              output.push(message);
-            } else if (typeof message == 'object') {
-              output.push(message);
-            } else {
-              //
-              // Wrap the element in an object
-              //
-              msg = {};
-              msg.payload = message;
-              output.push(msg);
-            }
-          });
-
-          //
-          // Emit the output messages
-          //
-          output.forEach(msg => {
+            //
+            // Emit the output messages
+            //
+            output.forEach(msg => {
+              node.send(msg);
+            });
+          } else {
+            const err = res.headers['x-warp10-error-message'] || 'Something wrong appends';
+            node.error(err, msg);
+            msg.payload = `${err}: ${this.warpurl}`;
+            msg.statusCode = res.statusCode;
             node.send(msg);
-          });
+            node.status({fill: "red", shape: "ring", text: res.statusCode});
+          }
         });
       });
 
       post_req.on('error', err => {
         node.error(err, msg);
-        msg.payload = err.toString() + ": " + this.warpurl;
+        msg.payload = `${err.toString()}: ${this.warpurl}`;
         msg.statusCode = err.code;
         node.send(msg);
-        node.status({fill: "red", shape: "ring", text: err.code});
+        node.status({fill: 'red', shape: "ring", text: err.code});
       });
 
       //
