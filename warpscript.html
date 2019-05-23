@@ -17,32 +17,32 @@
   -->
 
 <script type="text/javascript">
-  RED.nodes.registerType('WarpScript',{
+  RED.nodes.registerType('WarpScript', {
     category: 'function',
     color: '#FF9900',
     defaults: {
-      name: { value : "" },
-      warpurl: { value : "https://sandbox.senx.io/api/v0/exec" },
-      warpscript: { value : "//\n// Insert your WarpScript™ code below\n// The current message will be available on the stack as a MAP\n//" },
-      outputs: { value : 1 }
+      name: {value: ""},
+      warpurl: {value: "https://sandbox.senx.io/api/v0/exec"},
+      warpscript: {value: "//\n// Insert your WarpScript™ code below\n// The current message will be available on the stack as a MAP\n//"},
+      outputs: {value: 1}
     },
-    inputs:1,
-    outputs:1,
+    inputs: 1,
+    outputs: 1,
     icon: "white-globe.png",
-    label: function() {
+    label: function () {
       return this.name || "WarpScript";
     },
-    oneditprepare: function() {
+    oneditprepare: function () {
       var that = this;
-      $( "#node-input-outputs" ).spinner({
-        min:1
+      $("#node-input-outputs").spinner({
+        min: 1
       });
       this.editor = RED.editor.createEditor({
         id: 'node-input-warpscript-editor',
         value: $("#node-input-warpscript").val(),
         globals: {
-          msg:true,
-          context:true,
+          msg: true,
+          context: true,
           RED: true,
           util: true,
           flow: true,
@@ -56,18 +56,18 @@
         }
       });
       RED.library.create({
-        url:"WarpScript", // where to get the data from
-        type:"function", // the type of object the library is for
-        editor:this.editor, // the field name the main text body goes to
-        fields:['name','outputs','warpurl','warpscript']
+        url: "WarpScript", // where to get the data from
+        type: "function", // the type of object the library is for
+        editor: this.editor, // the field name the main text body goes to
+        fields: ['name', 'outputs', 'warpurl', 'warpscript']
       });
       this.editor.focus();
     },
-    oneditsave: function() {
+    oneditsave: function () {
       var annot = this.editor.getSession().getAnnotations();
       this.noerr = 0;
       $("#node-input-noerr").val(0);
-      for (var k=0; k < annot.length; k++) {
+      for (var k = 0; k < annot.length; k++) {
         if (annot[k].type === "error") {
           $("#node-input-noerr").val(annot.length);
           this.noerr = annot.length;
@@ -76,15 +76,15 @@
       $("#node-input-warpscript").val(this.editor.getValue());
       delete this.editor;
     },
-    oneditresize: function(size) {
+    oneditresize: function (size) {
       var rows = $("#dialog-form>div:not(.node-text-editor-row)");
       var height = $("#dialog-form").height();
-      for (var i=0;i<rows.size();i++) {
+      for (var i = 0; i < rows.size(); i++) {
         height -= $(rows[i]).outerHeight(true);
       }
       var editorRow = $("#dialog-form>div.node-text-editor-row");
-      height -= (parseInt(editorRow.css("marginTop"))+parseInt(editorRow.css("marginBottom")));
-      $(".node-text-editor").css("height",height+"px");
+      height -= (parseInt(editorRow.css("marginTop")) + parseInt(editorRow.css("marginBottom")));
+      $(".node-text-editor").css("height", height + "px");
       this.editor.resize();
     }
   });
@@ -117,6 +117,7 @@
     <label for="node-input-outputs"><i class="fa fa-random"></i> <span data-i18n="function.label.outputs"></span></label>
     <input id="node-input-outputs" style="width: 60px;" value="1">
   </div>
+
 </script>
 
 <script type="text/x-red" data-help-name="WarpScript">

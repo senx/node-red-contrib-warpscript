@@ -1,0 +1,28 @@
+{
+  "name": "@senx/node-red-contrib-warpscript",
+  "version": "1.0.0",
+  "description": "Node-RED node for executing WarpScript™",
+  "main": "warpscript.js",
+  "repository": "git@github.com:senx/node-red-contrib-warpscript.git",
+  "author": "SenX <contact@senx.io>",
+  "license": "Apache-2.0",
+  "keywords": [
+    "node-red",
+    "time series",
+    "warp10",
+    "Warp 10",
+    "WarpScript",
+    "Geo Times Series",
+    "Times Series"
+  ],
+  "private": false,
+  "node-red" : {
+    "nodes": {
+      "WarpScript": "warpscript.js"
+    }
+  },
+  "files": [
+    "warpscript.html",
+    "warpscript.js"
+  ]
+}

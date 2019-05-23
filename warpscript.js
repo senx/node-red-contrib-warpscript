@@ -14,49 +14,40 @@
 //   limitations under the License.
 //
 
-module.exports = function(RED) {
+module.exports = function (RED) {
 
+  /**
+   *
+   * @param config
+   * @constructor
+   */
   function WarpScriptNode(config) {
-
-    RED.nodes.createNode(this,config);
-    var node = this;
+    RED.nodes.createNode(this, config);
+    const node = this;
     this.warpurl = config.warpurl;
-    this.warpscript = config.warpscript;  
+    this.warpscript = config.warpscript;
+    const urllib = require('url');
+    const https = require('https');
+    const http = require('http');
 
-    var urllib = require("url");
-
-    var https = require('https');
-    var http = require('http');
-
-    var isTemplatedUrl = (this.url || "").indexOf("{{") != -1;
-
-    this.on('input', function(msg) {
-  
-      var method = "POST";
-
+    this.on('input', function (msg) {
       //
       // Create the representation of the message
       //
 
-      var postData = "{ ";
+      let postData = '{ ';
 
-      for(var key in msg) {
-        currentData = msg[key];
-        var parsed = parse(currentData) ;
-        if (undefined != parsed) {
-          postData += " '" +  key.toString() + "' " + parsed;
+      for(let key in msg) {
+        const parsed = parse(msg[key]);
+        if (undefined !== parsed) {
+          postData += ` '${key.toString()}' ${parsed}`;
         }
       }
 
-      postData += "} " + this.warpscript;
+      postData += '}\n' + this.warpscript;
 
-      console.log(postData);
-
-      var async = true;
-
-      var opts = urllib.parse(this.warpurl);
-
-      var post_options = {
+      const opts = urllib.parse(this.warpurl);
+      const post_options = {
         host: opts.hostname,
         port: opts.port,
         path: opts.path,
@@ -69,48 +60,48 @@ module.exports = function(RED) {
 
       // Set up the response handling
 
-      var post_req = ((/^https/.test(this.warpurl)) ? https : http).request(post_options, function(res) {
+      const post_req = ((/^https/.test(this.warpurl)) ? https : http).request(post_options, res => {
         res.setEncoding('utf8');
-        res.on('data', function (chunk) {
+        res.on('data', chunk => {
           //
-	  // parse the JSON returned by Warp 10™ and reverse it so the most recent element is last
+          // parse the JSON returned by Warp 10™ and reverse it so the most recent element is last
           //
-          json = JSON.parse(chunk).reverse();
+          const json = JSON.parse(chunk).reverse();
 
-          output = []
+          const output = [];
 
-	  json.forEach(function(message) {
-	    if (Array.isArray(message)) {
-	      output.push(message);
+          json.forEach(message => {
+            if (Array.isArray(message)) {
+              output.push(message);
             } else if (typeof message == 'object') {
               output.push(message);
             } else {
-	      //
-	      // Wrap the element in an object
               //
-	      msg = {}
-              msg.payload = message
-	      output.push(msg);
+              // Wrap the element in an object
+              //
+              msg = {};
+              msg.payload = message;
+              output.push(msg);
             }
-	  });
+          });
 
           //
           // Emit the output messages
           //
-          output.forEach(function(msg) {
-	    node.send(msg);
-	  });          
+          output.forEach(msg => {
+            node.send(msg);
+          });
         });
       });
 
-      post_req.on('error',function(err) {
-        node.error(err,msg);
+      post_req.on('error', err => {
+        node.error(err, msg);
         msg.payload = err.toString() + ": " + this.warpurl;
         msg.statusCode = err.code;
         node.send(msg);
         node.status({fill: "red", shape: "ring", text: err.code});
       });
-    
+
       //
       // do the actual HTTP call
       //
@@ -125,42 +116,40 @@ module.exports = function(RED) {
 
   function parse(currentData) {
 
-    if (typeof currentData === 'string') {  
-      return " '" + currentData.toString() + "' ";
+    if (typeof currentData === 'string') {
+      return `'${currentData.toString()}' `;
     }
 
-    if (typeof currentData === 'number' || typeof currentData === 'boolean') {  
-      return currentData.toString() + " ";
+    if (typeof currentData === 'number' || typeof currentData === 'boolean') {
+      return `${currentData.toString()} `;
     }
 
+    // noinspection JSTypeOfValues
     if (typeof currentData === 'Buffer') {
-      return currentData.toString('utf-8') + "' ";
+      return `'${currentData.toString('utf-8')}' `;
     }
 
     if (Array.isArray(currentData)) {
-      var array= "[ ";
-      for (index = 0; index < currentData.length; ++index) {  
-        array += parse(currentData[index]);
-      }
-      array += "] ";
+      let array = '[ ';
+      currentData.forEach(elt => array += parse(elt));
+      array += '] ';
       return array;
     }
 
     if (typeof currentData === 'object') {
       if (null === currentData) {
-        return "NULL";
+        return 'NULL ';
       }
-      var obj= "{ ";
-      for(var keyItem in currentData) {
-        subItem = currentData[keyItem];
-        obj += " '" +  keyItem.toString() + "' " + parse(subItem);
-      } 
-      obj += "} ";
+      let obj = '{ ';
+      currentData.forEach((subItem, keyItem) => {
+        obj += `'${keyItem.toString()}' ${parse(subItem)}`;
+      });
+      obj += '} ';
       return obj;
     }
 
     return undefined;
   }
 
-  RED.nodes.registerType("WarpScript", WarpScriptNode);
-}
+  RED.nodes.registerType(`WarpScript`, WarpScriptNode);
+};
