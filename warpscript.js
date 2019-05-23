@@ -37,7 +37,7 @@ module.exports = function (RED) {
 
       let postData = '{ ';
 
-      for(let key in msg) {
+      for (let key in msg) {
         const parsed = parse(msg[key]);
         if (undefined !== parsed) {
           postData += ` '${key.toString()}' ${parsed}`;
@@ -67,35 +67,41 @@ module.exports = function (RED) {
           data += chunk;
         });
         res.on('end', () => {
-          if(res.statusCode < 400) {
+          if (res.statusCode < 400) {
             node.status({fill: "green", shape: "dot", text: ''});
             //
             // parse the JSON returned by Warp 10™ and reverse it so the most recent element is last
             //
-            const json = JSON.parse(data).reverse();
-            const output = [];
+            try {
 
-            json.forEach(message => {
-              if (Array.isArray(message)) {
-                output.push(message);
-              } else if (typeof message == 'object') {
-                output.push(message);
-              } else {
-                //
-                // Wrap the element in an object
-                //
-                msg = {};
-                msg.payload = message;
-                output.push(msg);
-              }
-            });
+              const json = JSON.parse(data).reverse();
+              const output = [];
 
-            //
-            // Emit the output messages
-            //
-            output.forEach(msg => {
-              node.send(msg);
-            });
+              json.forEach(message => {
+                if (Array.isArray(message)) {
+                  output.push(message);
+                } else if (typeof message == 'object') {
+                  output.push(message);
+                } else {
+                  //
+                  // Wrap the element in an object
+                  //
+                  msg = {};
+                  msg.payload = message;
+                  output.push(msg);
+                }
+              });
+
+              //
+              // Emit the output messages
+              //
+              output.forEach(msg => {
+                node.send(msg);
+              });
+            } catch (err) {
+              node.error(err, msg);
+              node.status({fill: 'red', shape: "ring", text: 'Error'});
+            }
           } else {
             const err = res.headers['x-warp10-error-message'] || 'Something wrong appends';
             node.error(err, msg);
