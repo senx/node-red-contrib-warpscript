@@ -1,0 +1,132 @@
+<!--
+  --
+  --   Copyright 2019  SenX S.A.S.
+  --
+  --   Licensed under the Apache License, Version 2.0 (the "License");
+  --   you may not use this file except in compliance with the License.
+  --   You may obtain a copy of the License at
+  --
+  --     http://www.apache.org/licenses/LICENSE-2.0
+  --
+  --   Unless required by applicable law or agreed to in writing, software
+  --   distributed under the License is distributed on an "AS IS" BASIS,
+  --   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  --   See the License for the specific language governing permissions and
+  --   limitations under the License.
+  --
+  -->
+
+<script type="text/javascript">
+  RED.nodes.registerType('WarpScript',{
+    category: 'function',
+    color: '#FF9900',
+    defaults: {
+      name: { value : "" },
+      warpurl: { value : "https://sandbox.senx.io/api/v0/exec" },
+      warpscript: { value : "//\n// Insert your WarpScript™ code below\n// The current message will be available on the stack as a MAP\n//" },
+      outputs: { value : 1 }
+    },
+    inputs:1,
+    outputs:1,
+    icon: "white-globe.png",
+    label: function() {
+      return this.name || "WarpScript";
+    },
+    oneditprepare: function() {
+      var that = this;
+      $( "#node-input-outputs" ).spinner({
+        min:1
+      });
+      this.editor = RED.editor.createEditor({
+        id: 'node-input-warpscript-editor',
+        value: $("#node-input-warpscript").val(),
+        globals: {
+          msg:true,
+          context:true,
+          RED: true,
+          util: true,
+          flow: true,
+          global: true,
+          console: true,
+          Buffer: true,
+          setTimeout: true,
+          clearTimeout: true,
+          setInterval: true,
+          clearInterval: true
+        }
+      });
+      RED.library.create({
+        url:"WarpScript", // where to get the data from
+        type:"function", // the type of object the library is for
+        editor:this.editor, // the field name the main text body goes to
+        fields:['name','outputs','warpurl','warpscript']
+      });
+      this.editor.focus();
+    },
+    oneditsave: function() {
+      var annot = this.editor.getSession().getAnnotations();
+      this.noerr = 0;
+      $("#node-input-noerr").val(0);
+      for (var k=0; k < annot.length; k++) {
+        if (annot[k].type === "error") {
+          $("#node-input-noerr").val(annot.length);
+          this.noerr = annot.length;
+        }
+      }
+      $("#node-input-warpscript").val(this.editor.getValue());
+      delete this.editor;
+    },
+    oneditresize: function(size) {
+      var rows = $("#dialog-form>div:not(.node-text-editor-row)");
+      var height = $("#dialog-form").height();
+      for (var i=0;i<rows.size();i++) {
+        height -= $(rows[i]).outerHeight(true);
+      }
+      var editorRow = $("#dialog-form>div.node-text-editor-row");
+      height -= (parseInt(editorRow.css("marginTop"))+parseInt(editorRow.css("marginBottom")));
+      $(".node-text-editor").css("height",height+"px");
+      this.editor.resize();
+    }
+  });
+</script>
+
+<script type="text/x-red" data-template-name="WarpScript">
+  <div class="form-row">
+    <label for="node-input-name"><i class="icon-tag"></i>&nbsp;Name</label>
+    <input type="text" id="node-input-name" placeholder="Name">
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-warpurl"><span><i class="fa fa-globe"></i>&nbsp;Warp&nbsp;10™&nbsp;Exec&nbsp;Endpoint</span></label>
+    <p>
+    <input type="text" id="node-input-warpurl" placeholder="https://sandbox.senx.io/api/v0/exec">
+    </p>
+  </div>
+
+  <div class="form-row" style="margin-bottom: 0px;">
+    <label for="node-input-warpscript"><span><i class="fa fa-wrench"></i>&nbsp;WarpScript™&nbsp;Code</span></label>
+    <input type="hidden" id="node-input-warpscript" autofocus="autofocus">
+    <input type="hidden" id="node-input-noerr">    
+  </div>
+
+  <div class="form-row node-text-editor-row">
+    <div style="height: 250px; min-height:150px;" class="node-text-editor" id="node-input-warpscript-editor" ></div>
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-outputs"><i class="fa fa-random"></i> <span data-i18n="function.label.outputs"></span></label>
+    <input id="node-input-outputs" style="width: 60px;" value="1">
+  </div>
+</script>
+
+<script type="text/x-red" data-help-name="WarpScript">
+  <p>
+    Node to execute WarpScript™ code.
+  </p>
+  <p>
+    When receiving a message it calls the configured Warp 10™ instance exec endpoint with the message (a map) followed by the configured WarpScript™ code.
+  </p>
+  <p>
+    When the request ends, the stack levels will be interpreted as output to pass to the next elements in the flow. A list is considered a list of lists of messages, one list per output. A map is considered as a message, and any other type will be wrapped in a map.
+  </p>
+</script>
