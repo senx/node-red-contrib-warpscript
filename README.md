@@ -1,46 +1,57 @@
-# Node WarpScript #
+# WarpScript™ Node #
 
-This module can be used to execute some WarpScript with node-red. This will be done by executing an HTTP POST to the [Warp 10](http://www.warp10.io/) url indicated in the warpscript node config.
+This module can be used to execute some WarpScript™ code within Node-RED.
+
+Execution is triggered for every incoming message. Execution is performed on a remote Warp 10™ instance via an HTTP POST request.
+
+## Setup
+
+To install the WarpScript™ node, simply run
+
+```
+  npm install node-red-contrib-warpscript
+```
+
+or copy the `warpscript.js` and `warpscript.html` files into your `nodes` directory.
+
+Once the WarpScript™ node is installed, you need to restart Node-RED.
 
 ## Input 
 
-If an input is added before the warpscript node, then it pushes the message contained in it directly on the stack. If the message contains any primitives types, they are pushed as if on warpscript (String, Number and boolean), array are converted in List, object in Map, null in NULL, and Buffer in utf-8 string. 
+Whenever a message is received by the WarpScript™ node, the message is pushed onto the stack followed by the configured WarpScript™ code.
 
-A message on WarpScript have the following form:  
+Each message is a map. Messages produced by Node-RED usually contain the following fields:
 
 ```
   { '_msgid' 'f8f4fefe.070b' 'topic' '' 'payload' 1472737293700 }
 ```
 
-## Execute custom WarpScript
+Types are converted using the following rules, primitives types (String, Number, boolean) are unmodified, arrays are converted to lists, objects are converted to maps, null is converted to NULL and Buffer is converted to a UTF-8 STRING.
 
-Insert the [WarpScript](http://www.warp10.io/reference/) to execute on the input in the editor in the config of the warpscript node.
+## Output
 
-## Send a message as output
+Your WarpScript™ code can produce some outputs which will be pushed down your flow.
 
-In the config of the warpscript, it possibles to enter as many output as possible in node-red. To send messages to specific output define a map on the top of the stack. For example the following WarpScript code takes as input a message, store it in a variable then send two output messages: one to the first output configured (transfered the message received), and then send a second one to another output with a new message containing a "test" payload.
+The WarpScript™ node will inspect the stack levels and convert each one to output messages according to the following rules.
 
-```
-  'msg' STORE
-  {
-      '0' $msg
-      '2' { 'payload' 'test' }
-  }
-```
-
-## Set-UP
-
-To install a new node just configure the setting file of the installed node-red server located in 
+If a level contains a map, it is assumed to be a valid Node-RED message, with a `payload` field containing the message content.
 
 ```
-/Home/user/.node-red/settings.js
-```
-Link nodesDir properties to a directory path
-
-```
-nodesDir = '/Your/path/nodes'
+  { 'payload' 'This is the message payload' }
 ```
 
-Then add both warpscript.html and warpscript.js files in this folder. 
+If a level contains a list, the list is assumed to be a list of lists of messages, with one inner list per output. The content of each of those lists is assumed to be messages for the given output.
 
-Restart node-red.
+```
+  [
+    [
+      { 'payload' 'First message for output 1' }
+      { 'payload' 'Second message for output 1' }
+    ]
+    [ { 'payload' 'Message for output 2' } ]
+  ]
+```
+
+If a level contains anything else, the content will be put in the `payload` field of a Node-RED message.
+
+If your WarpScript™ returned multiple stack levels, each level will be scanned, starting with the deepest one.
