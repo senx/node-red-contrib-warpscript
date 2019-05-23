@@ -6,15 +6,17 @@ Execution is triggered for every incoming message. Execution is performed on a r
 
 ## Setup
 
-To install the WarpScript™ node, simply run
+To install the WarpScript™ node, from your `~/.node-red` directory simply run
 
 ```
   npm install node-red-contrib-warpscript
 ```
 
-or copy the `warpscript.js` and `warpscript.html` files into your `nodes` directory.
+or copy the `warpscript.js` and `warpscript.html` files into the `nodes` subdirectory.
 
 Once the WarpScript™ node is installed, you need to restart Node-RED.
+
+You should then see a new type of node on the Node-RED left-side menu.
 
 ## Input 
 
