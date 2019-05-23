@@ -68,7 +68,7 @@ module.exports = function (RED) {
         });
         res.on('end', () => {
           if(res.statusCode < 400) {
-            node.status({fill: "green", shape: "dot", text: 'Engage'});
+            node.status({fill: "green", shape: "dot", text: ''});
             //
             // parse the JSON returned by Warp 10™ and reverse it so the most recent element is last
             //
