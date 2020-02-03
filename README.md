@@ -1,26 +1,26 @@
-# WarpScript™ Node #
+# WarpScript Node #
 
-This module can be used to execute some WarpScript™ code within Node-RED.
+This module can be used to execute some WarpScript code within Node-RED.
 
-Execution is triggered for every incoming message. Execution is performed on a remote Warp 10™ instance via an HTTP POST request.
+Execution is triggered for every incoming message. Execution is performed on a remote Warp 10 instance via an HTTP POST request.
 
 ## Setup
 
-To install the WarpScript™ node, from your `~/.node-red` directory simply run
+To install the WarpScript node, from your `~/.node-red` directory simply run
 
 ```
-  npm install node-red-contrib-warpscript
+  npm install @senx/node-red-contrib-warpscript
 ```
 
 or copy the `warpscript.js` and `warpscript.html` files into the `nodes` subdirectory.
 
-Once the WarpScript™ node is installed, you need to restart Node-RED.
+Once the WarpScript node is installed, you need to restart Node-RED.
 
 You should then see a new type of node on the Node-RED left-side menu.
 
 ## Input 
 
-Whenever a message is received by the WarpScript™ node, the message is pushed onto the stack followed by the configured WarpScript™ code.
+Whenever a message is received by the WarpScript node, the message is pushed onto the stack followed by the configured WarpScript code.
 
 Each message is a map. Messages produced by Node-RED usually contain the following fields:
 
@@ -32,9 +32,9 @@ Types are converted using the following rules, primitives types (String, Number,
 
 ## Output
 
-Your WarpScript™ code can produce some outputs which will be pushed down your flow.
+Your WarpScript code can produce some outputs which will be pushed down your flow.
 
-The WarpScript™ node will inspect the stack levels and convert each one to output messages according to the following rules.
+The WarpScript node will inspect the stack levels and convert each one to output messages according to the following rules.
 
 If a level contains a map, it is assumed to be a valid Node-RED message, with a `payload` field containing the message content.
 
@@ -56,4 +56,4 @@ If a level contains a list, the list is assumed to be a list of lists of message
 
 If a level contains anything else, the content will be put in the `payload` field of a Node-RED message.
 
-If your WarpScript™ returned multiple stack levels, each level will be scanned, starting with the deepest one.
+If your WarpScript returned multiple stack levels, each level will be scanned, starting with the deepest one.
